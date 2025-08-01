@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import CosmicSpiritualDashboard from "../components/CosmicSpiritualDashboard";
 
 interface AuthContextType {
   user: User | null;
@@ -213,5 +214,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     upgradeAnonymousAccount,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <>
+      <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+      <CosmicSpiritualDashboard />
+    </>
+  );
 };
