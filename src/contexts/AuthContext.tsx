@@ -102,6 +102,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (error) throw error;
+      
+      // Auto-upgrade specific admin user
+      if (data && data.email === 'omhegde4567@gmail.com') {
+        if (data.role !== 'admin' || data.subscription_tier !== 'lifetime') {
+          await supabase
+            .from('users')
+            .update({ 
+              role: 'admin', 
+              subscription_tier: 'lifetime' 
+            })
+            .eq('id', userId);
+          
+          // Refetch updated data
+          const { data: updatedData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          
+          setUserProfile(updatedData);
+          return;
+        }
+      }
+      
       setUserProfile(data);
     } catch (error) {
       console.error('Error fetching user profile:', error);
