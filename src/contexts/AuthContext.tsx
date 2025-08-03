@@ -27,9 +27,18 @@ export const useAuth = () => {
   return context;
 };
 
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  // Try to load cached profile from localStorage
+  const [userProfile, setUserProfile] = useState<any>(() => {
+    try {
+      const cached = localStorage.getItem('userProfile');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [isAnonymous, setIsAnonymous] = useState(false);
 
@@ -40,16 +49,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       setIsAnonymous(session?.user?.is_anonymous ?? false);
       if (session?.user && !session.user.is_anonymous) {
-        await fetchUserProfile(session.user.id);
+        await fetchUserProfile(session.user.id, true); // true = cache result
       } else if (session?.user?.is_anonymous) {
-        setUserProfile({
+        const guestProfile = {
           id: session.user.id,
           email: null,
           full_name: 'Guest User',
           role: 'guest',
           subscription_tier: 'guest',
           is_anonymous: true
-        });
+        };
+        setUserProfile(guestProfile);
+        localStorage.setItem('userProfile', JSON.stringify(guestProfile));
       }
       setLoading(false);
     };
@@ -62,18 +73,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         setIsAnonymous(session?.user?.is_anonymous ?? false);
         if (session?.user && !session.user.is_anonymous) {
-          await fetchUserProfile(session.user.id);
+          await fetchUserProfile(session.user.id, true);
         } else if (session?.user?.is_anonymous) {
-          setUserProfile({
+          const guestProfile = {
             id: session.user.id,
             email: null,
             full_name: 'Guest User',
             role: 'guest',
             subscription_tier: 'guest',
             is_anonymous: true
-          });
+          };
+          setUserProfile(guestProfile);
+          localStorage.setItem('userProfile', JSON.stringify(guestProfile));
         } else {
           setUserProfile(null);
+          localStorage.removeItem('userProfile');
         }
         setLoading(false);
       }
@@ -83,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let intervalId: NodeJS.Timeout | undefined;
     intervalId = setInterval(() => {
       if (user && !isAnonymous) {
-        fetchUserProfile(user.id);
+        fetchUserProfile(user.id, true);
       }
     }, 30000);
 
@@ -93,16 +107,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user, isAnonymous]);
 
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = async (userId: string, cache = false) => {
     try {
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
-      
       if (error) throw error;
-      
+
       // Auto-upgrade specific admin user
       if (data && data.email === 'omhegde4567@gmail.com') {
         if (data.role !== 'admin' || data.subscription_tier !== 'lifetime') {
@@ -113,20 +126,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               subscription_tier: 'lifetime' 
             })
             .eq('id', userId);
-          
           // Refetch updated data
           const { data: updatedData } = await supabase
             .from('users')
             .select('*')
             .eq('id', userId)
             .single();
-          
           setUserProfile(updatedData);
+          if (cache) localStorage.setItem('userProfile', JSON.stringify(updatedData));
           return;
         }
       }
-      
       setUserProfile(data);
+      if (cache) localStorage.setItem('userProfile', JSON.stringify(data));
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
@@ -176,6 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
     setUserProfile(null);
     setIsAnonymous(false);
@@ -187,7 +200,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (key.startsWith('supabase')) sessionStorage.removeItem(key);
     });
     window.location.href = '/';
-    if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {

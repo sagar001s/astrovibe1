@@ -14,15 +14,33 @@ import {
   Lock
 } from 'lucide-react';
 
+
 const Header: React.FC = () => {
   const { user, userProfile, signOut, isAnonymous } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [prevUser, setPrevUser] = useState<any>(null);
+
+  // Close mobile menu and dropdowns after login
+  React.useEffect(() => {
+    if (!prevUser && user) {
+      setIsMenuOpen(false);
+      setActiveDropdown(null);
+    }
+    setPrevUser(user);
+  }, [user]);
 
   const handleSignOut = async () => {
-    await signOut();
-    window.location.href = '/';
+    try {
+      setActiveDropdown(null);
+      setIsMenuOpen(false);
+      await signOut();
+      window.location.href = '/';
+    } catch (err: any) {
+      alert('Sign out failed. Please try again.');
+      console.error('Sign out error:', err);
+    }
   };
 
   const dropdownItems = {
@@ -240,9 +258,28 @@ const Header: React.FC = () => {
                       )}
                       <button
                         onClick={handleSignOut}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                       >
                         Sign Out
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveDropdown(null);
+                          setIsMenuOpen(false);
+                          // Clear all local/session storage and cookies for this site
+                          Object.keys(localStorage).forEach((key) => localStorage.removeItem(key));
+                          Object.keys(sessionStorage).forEach((key) => sessionStorage.removeItem(key));
+                          // Clear cookies
+                          document.cookie.split(';').forEach((c) => {
+                            document.cookie = c
+                              .replace(/^ +/, '')
+                              .replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
+                          });
+                          window.location.reload();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 border-t border-gray-100"
+                      >
+                        Force Clear Session (Debug)
                       </button>
                     </div>
                   )}

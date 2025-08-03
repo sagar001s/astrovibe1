@@ -37,9 +37,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; guestAllowed?: boole
   children, 
   guestAllowed = false 
 }) => {
-  const { user, isAnonymous, loading } = useAuth();
+  const { user, isAnonymous, loading, userProfile } = useAuth();
 
-  if (loading) {
+  if (loading || (user && !userProfile)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
