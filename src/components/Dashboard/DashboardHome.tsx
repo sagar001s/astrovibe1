@@ -187,6 +187,29 @@ const DashboardHome: React.FC = () => {
               )}
             </div>
           </div>
+          
+          {/* Admin Panel Access for specific user */}
+          {userProfile?.email === 'omhegde4567@gmail.com' && (
+            <div className="bg-gradient-to-r from-red-600 to-pink-600 rounded-xl p-6 text-white mt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-bold mb-2 flex items-center">
+                    <Shield className="w-6 h-6 mr-2" />
+                    Admin Access
+                  </h3>
+                  <p className="text-red-100">
+                    You have administrative privileges. Access the admin panel to manage the platform.
+                  </p>
+                </div>
+                <Link
+                  to="/admin"
+                  className="bg-white text-red-600 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors"
+                >
+                  Admin Panel
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

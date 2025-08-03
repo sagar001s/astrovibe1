@@ -54,7 +54,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; guestAllowed?: boole
     return <Navigate to="/login" replace />;
   }
 
-  if (isAnonymous && !guestAllowed) {
+  // Skip restrictions for admin user
+  if (isAnonymous && !guestAllowed && userProfile?.email !== 'omhegde4567@gmail.com') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="max-w-md mx-auto text-center p-8 bg-white rounded-xl shadow-lg">

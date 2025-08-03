@@ -37,8 +37,8 @@ const AIChat: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // Check message limits for free users
-    if (userProfile?.subscription_tier === 'free' && dailyMessageCount >= 3) {
+    // Check message limits for free users (skip for admin)
+    if (userProfile?.subscription_tier === 'free' && userProfile?.email !== 'omhegde4567@gmail.com' && dailyMessageCount >= 3) {
       alert('You have reached your daily message limit. Please upgrade to Premium for unlimited messages.');
       return;
     }

@@ -218,6 +218,15 @@ const Header: React.FC = () => {
                           >
                             Settings
                           </Link>
+                          {userProfile?.email === 'omhegde4567@gmail.com' && (
+                            <Link
+                              to="/admin"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                              onClick={() => setActiveDropdown(null)}
+                            >
+                              Admin Panel
+                            </Link>
+                          )}
                         </>
                       )}
                       {isAnonymous && (
@@ -227,15 +236,6 @@ const Header: React.FC = () => {
                           onClick={() => setActiveDropdown(null)}
                         >
                           Create Account
-                        </Link>
-                      )}
-                      {userProfile?.role === 'admin' && user?.email === 'omhegde4567@gmail.com' && (
-                        <Link
-                          to="/admin"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600"
-                          onClick={() => setActiveDropdown(null)}
-                        >
-                          Admin Panel
                         </Link>
                       )}
                       <button
